@@ -9,9 +9,11 @@
 
 int main(int argc, char **argv)
 {
-    for (int i = 0; i < 1; i++)
+    struct timeval start;
+    struct timeval end;
+    gettimeofday(&start, NULL);
+    for (int i = 0; i < 50; i++)
     {
-        /*
         //Test Case 1
         for (int j = 0; j < 120; j++)
         {
@@ -27,19 +29,18 @@ int main(int argc, char **argv)
         for(int j = 0; j<120;j++){
             free(arr[j]);
         }
-        */
         //Test Case 3
         int count = 0;
-        int j = 0;
+        int l = 0;
         int **arrTwo[120];
-        while (j < 120)
+        while (l < 120)
         {
             int choice = rand() % 2;
             if ((choice == 1) || (count == 0))
             {
                 arrTwo[count] = malloc(1);
                 count++;
-                j++;
+                l++;
             }
             else
             {
@@ -47,10 +48,10 @@ int main(int argc, char **argv)
                 free(arrTwo[count]);
             }
         }
-        for(int j = 0; j<count;j++){
-            free(arrTwo[count]);
+        for(int k = 0; k<count;k++){
+            free(arrTwo[k]);
         }
-        /*
+        
         //Test Case 4
         int** arrThree[120];
         for(int j = 0; j<120;j++){
@@ -62,15 +63,16 @@ int main(int argc, char **argv)
         for(int j = 0; j<60;j++){
             free(arrThree[j*2+1]);
         }
-        
         //Test Case 5
-        for(int j = 0; j<60;j++){
-            arrThree[j] = malloc(j);
+        int countTwo = 1;
+        for(int j = 0; j<20;j++){
+            arrThree[j] = malloc(22);
         }
-        for(int j = 0; j<60;j++){
+        for(int j = 0; j<20;j++){
             free(arrThree[j]);
         }
-        */
     }
+    gettimeofday(&end, NULL);
+    printf("Average Time: %ld nanoseconds\n", ((end.tv_sec*1000000+end.tv_usec)-(start.tv_sec*1000000+start.tv_usec))/50);
     exit(0);
 }

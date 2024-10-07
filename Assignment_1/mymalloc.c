@@ -133,7 +133,7 @@ void myfree(void *ptr, char *file, int line)
             checker = 0;
         }
         // Frees chunk and coalescing free chunks
-        if ((&heap.bytes[i+8]) == ptr)
+        if (((&heap.bytes[i+8]) == ptr) && (a->allocated == 1))
         {
             found = 1;
             a->allocated = 0;
@@ -161,11 +161,6 @@ void myfree(void *ptr, char *file, int line)
     if (found != 1)
     {
         printf("free: Inappropriate pointer (%s:%d)\n", file, line);
-        int i = 0;
-    while (i < MEMLENGTH)
-    {
-        Chunk* a = (Chunk*)(&heap.bytes[i]);
-        i += a->size;        
-    }
+        exit(2);
     }
 }
