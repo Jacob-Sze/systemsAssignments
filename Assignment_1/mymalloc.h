@@ -7,5 +7,5 @@
 
 void *mymalloc(size_t size, char *file, int line);
 void myfree(void *ptr, char *file, int line);
-void *leakChecker(void *e);
+
 #endif
