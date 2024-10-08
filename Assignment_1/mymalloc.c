@@ -22,7 +22,7 @@ Stuff we have to do:
 // Struct for header information
 typedef struct chunk
 {
-    size_t size;
+    int size;
     int allocated;
 } Chunk;
 
