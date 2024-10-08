@@ -64,7 +64,6 @@ int main(int argc, char **argv)
             free(arrThree[j*2+1]);
         }
         //Test Case 5
-        int countTwo = 1;
         for(int j = 0; j<20;j++){
             arrThree[j] = malloc(22);
         }
