@@ -70,6 +70,9 @@ void *mymalloc(size_t size, char *file, int line)
     {
         inital();
     }
+    if(size == 0) {
+        size += 8;
+    }
     // Alignment for size
     if (size % 8 != 0)
     {
