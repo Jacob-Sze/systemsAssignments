@@ -12,24 +12,24 @@ All test cases outside of those for performance testing are in their own C files
 Error Testing
 
 For error detection, we utilized three of the given usage errors in the writeup (1-3) and added 2 of our own (4-5):
-1. Call free() with an address not obtained from malloc()
-2. Calling free() with an address not at the start of a chunk 
-3. Calling free() a second time on the same pointer. 
-4. For leak testing, we called malloc() for 20 times into a int** array without freeing to ensure the correct amount of bytes being leaked and number of malloc()’d objects being leaked are as expected.
-5. malloc() more bytes than are available.
+1. Call free() with an address not obtained from malloc() - freeOne.C
+2. Calling free() with an address not at the start of a chunk  - freeTwo.C
+3. Calling free() a second time on the same pointer.  - freeThree.c
+4. For leak testing, we called malloc() for 20 times into a int** array without freeing to ensure the correct amount of bytes being leaked and number of malloc()’d objects being leaked are as expected. - leakTester.C
+5. malloc() more bytes than are available. - badMalloc.c
 
 Correctness testing
 To test our programs malloc() and free() outside of the error testing from section 2.1, we have 2 programs to check that we are both allocating the right amount of bytes (using 8 byte alignment) and freeing that memory. 
 
-1. malloc() a struct for a linked list node of 20 bytes to ensure that alignment is correct and heading is added when malloc()’ing but only payload is returned
+1. malloc() a struct for a linked list node of 20 bytes to ensure that alignment is correct and heading is added when malloc()’ing but only payload is returned - testMalloc.c
     1a. We used __attribute__((packed)); in order to ensure the struct stayed 20 bytes for testing because the struct was auto aligning to 24 bytes before malloc
-2. malloc() 10 linked list nodes each with 4 integer fields and place them into an array, and after allocating, change the 4 integers for each object to ensure that changing those fields for one object did not change them for all, then free all allocations.
+2. malloc() 10 linked list nodes each with 4 integer fields and place them into an array, and after allocating, change the 4 integers for each object to ensure that changing those fields for one object did not change them for all, then free all allocations. - testingFree.c
 
 Performance Testing (memgrind.c)
 
 Our first 3 test cases were the provided test cases (1-3) and 2 of our design (4-5)
 1. malloc() and immediately free() a 1-byte object, 120 times.
-2. Use malloc() to get 120 1-byte objects, storing the pointers in an array, then use free() to deallocate the chunks
+2. Use malloc() to get 120 1-byte objects, storing the pointers in an array, then use free() to dealloc
 3. Create an array of 120 pointers. Repeatedly make a random choice between allocating a 1-byte object and adding the pointer to the array and deallocating a previously allocated object (if any), until you have allocated 120 times. Deallocate any remaining objects.
 4. Coalescing by malloc()’ing 1 byte 120 times into an array, freeing every other index and then doing the same for the remaining allocated objects
 5. Alignment by mallocing 22 bytes 20 times to ensure that 24 bytes (excluding header) were actually being allocated (abiding by 8 byte alignment)
@@ -79,3 +79,4 @@ Our malloc traverses the heap array to find an open slot, and once we do, we all
 Our free traverses the heap array searching for the pointer to free and coalesces free chunks 
 
 As aforementioned, we used __attribute__((packed)) in testingMalloc.c to prevent auto struct alignment to ensure our alignment works properly
+ate the chunks
