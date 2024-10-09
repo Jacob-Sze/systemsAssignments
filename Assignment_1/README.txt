@@ -53,8 +53,7 @@ Correctness Testing
 
 Output from testcase 1 to test alignment (Included print statements):
 Size of struct LL node 20
-Size of Struct LL node payload returned from malloc 20
-Intentional leak to show that the 8 byte header is added and that the 20 byte struct still malloc's 24 bytes (no header):  
+Leak below shows that the 20 byte struct is aligned to 8 bytes (24 bytes) plus the 8 byte header, leading to 32 byte leak.
 mymalloc: 32 bytes leaked in 1 objects
 
 Output from testcase 2 where we ensured writing to objects didn't overwrite data from other objects and that our free worked:
