@@ -26,18 +26,8 @@ typedef struct chunk
     int allocated;
 } Chunk;
 
-// Initialization function
-void inital()
-{
-    init = 1;
-    Chunk* a = (Chunk*)(&heap.bytes[0]);
-    a->size = MEMLENGTH;
-    a->allocated = 0;
-    atexit(leakChecker);
-}
-
 // Leak Checker function
-void* leakChecker(void* e)
+static void leakChecker(void)
 {
     int count = 0;
     int size = 0;
@@ -57,8 +47,20 @@ void* leakChecker(void* e)
     {
         printf("mymalloc: %d bytes leaked in %d objects\n", size, count);
     }
-    return e;
+
 }
+
+// Initialization function
+void inital()
+{
+    init = 1;
+    Chunk* a = (Chunk*)(&heap.bytes[0]);
+    a->size = MEMLENGTH;
+    a->allocated = 0;
+    atexit(leakChecker);
+}
+
+
 
 // Malloc function
 void *mymalloc(size_t size, char *file, int line)
@@ -164,4 +166,3 @@ void myfree(void *ptr, char *file, int line)
         exit(2);
     }
 }
-
