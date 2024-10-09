@@ -74,7 +74,8 @@ Performance Testing (memgrind.c):
 __________________________________________________________
 Design Notes
 
-Our malloc traverses the heap array to find an open slot, and once we do, we allocate the item inside the heap array and reallocate for the free chunk
-Our free traverses the heap array searching for the pointer to free and coalesces free chunks 
+Our malloc first aligns the size to a multiple of 8 and adds 8 to count for the struct header size. It also accounts for the edge case when size = 0 which then it will add 8 more to the size. After this step, it traverses the heap array to find an open slot, and once we do, we allocate the item inside the heap array and reallocating and resizing the smaller chunk to fit its new destination. If the chunk is not able to fit inside of the heap, malloc will print an error and return NULL.
+Our free traverses the heap array searching for the pointer to free. If the pointer is found, it becomed freed and adds up the sizes of the freed chunks surrounding it. After this, the lowest index chunk's (Either the previous chunk or the pointer) size changes to fit this size, thus coalescing the chunks. If the pointer was not found, it would print out a error and exit(2). 
+Our leak checker which starts at exit traverses through the heap array and adds up all of the allocated chunks and its respective sizes. Afterwards, it prints out both the count and the total sum.
 
 As aforementioned, we used __attribute__((packed)) in testingMalloc.c to prevent auto struct alignment to ensure our alignment works properly
