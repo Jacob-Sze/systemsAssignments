@@ -80,7 +80,7 @@ its new destination. If the chunk is not able to fit inside of the heap, malloc 
 Our free traverses the heap array searching for the pointer to free. If the pointer is found, it becomed freed and adds up the sizes of the freed chunks surrounding it. After this, the 
 lowest index chunk's (Either the previous chunk or the pointer) size changes to fit this size, thus coalescing the chunks. If the pointer was not found, it would print out a error and 
 exit(2). 
-Our leak checker which starts at exit traverses through the heap array and adds up all of the allocated chunks and its respective sizes. Afterwards, it prints out both the count and the 
-total sum.
+Our leak checker (starts at exit) traverses through the heap array and adds up all of the allocated chunks and its respective sizes. Afterwards, it prints out both the count and the 
+total sum. If the count is 0, then it prints out nothing.
 
 As aforementioned, we used __attribute__((packed)) in testingMalloc.c to prevent auto struct alignment to ensure our alignment works properly
