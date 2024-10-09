@@ -79,4 +79,3 @@ Our malloc traverses the heap array to find an open slot, and once we do, we all
 Our free traverses the heap array searching for the pointer to free and coalesces free chunks 
 
 As aforementioned, we used __attribute__((packed)) in testingMalloc.c to prevent auto struct alignment to ensure our alignment works properly
-ate the chunks
