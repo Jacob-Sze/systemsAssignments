@@ -119,7 +119,7 @@ void directorySearch(char* dirName, DIR* dir){
                         close(fdTwo);
                         free(fileData);
                     }
-                }else if(S_ISDIR(st.st_mode) && strcmp(dp->d_name, ".") != 0 && strcmp(dp->d_name, "..") != 0){
+                }else if(S_ISDIR(st.st_mode) && dp->d_name[0] != '.'){
                     DIR *dirTwo = opendir(name);
                     directorySearch(name, dirTwo);
                     closedir(dirTwo);
