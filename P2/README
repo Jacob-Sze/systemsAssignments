@@ -48,3 +48,7 @@ that aren't exactly like given test cases
 __________________________________________________________
 Design Notes
 
+For every item in argv, we check if it is directory or a file. For directories, we recursively go through the subdirectories while scanning 
+the .txt files. While reading the files, we removed all of the hypens that do not follow the rules. By seperating all of the non-letter
+characters exlcuding apostrophe through strtok, we add the unique words to a linked list or add to the count for repetive words. Finally,
+we print out all of the words from the linked list in a sorted alphabetical manner from highest count to lowest count. 
