@@ -25,22 +25,16 @@ List *allocateNode(char *key)
     return node;
 }
 
-int main(int argc, char **argv)
-{
-    DIR *dir;
+List *node = NULL;
+
+void directorySearch(char* dirName, DIR* dir){
     struct dirent *dp;
-    int output = open("output.txt", O_WRONLY | O_CREAT, 0644);
-    List *node = NULL;
-    for (int i = 1; i < argc; i++)
-    {
-        if ((dir = opendir(argv[i])) != NULL)
-        {
-            while ((dp = readdir(dir)) != NULL)
+    while ((dp = readdir(dir)) != NULL)
             {
                 struct stat st;
-                char *name = malloc(strlen(argv[i]) + strlen(dp->d_name) + 5);
-                strcpy(name, argv[i]);
-                if (argv[i][strlen(argv[i]) - 1] != '/')
+                char *name = malloc(strlen(dirName) + strlen(dp->d_name) + 5);
+                strcpy(name, dirName);
+                if (dirName[strlen(dirName) - 1] != '/')
                 {
                     strcat(name, "/");
                 }
@@ -84,7 +78,6 @@ int main(int argc, char **argv)
                                 }
                             }
                         }
-                        printf("%s\n", fileData);
                         char *token = strtok(fileData, " !\"#$%&()*+,./0123456789:;<=>?@[\\]^_`{|}~\n");
                         while (token != NULL)
                         {
@@ -126,9 +119,24 @@ int main(int argc, char **argv)
                         close(fdTwo);
                         free(fileData);
                     }
+                }else if(S_ISDIR(st.st_mode) && strcmp(dp->d_name, ".") != 0 && strcmp(dp->d_name, "..") != 0){
+                    DIR *dirTwo = opendir(name);
+                    directorySearch(name, dirTwo);
+                    closedir(dirTwo);
                 }
                 free(name);
             }
+}
+
+int main(int argc, char **argv)
+{
+    DIR *dir;
+    int output = open("output.txt", O_WRONLY | O_CREAT, 0644);
+    for (int i = 1; i < argc; i++)
+    {
+        if ((dir = opendir(argv[i])) != NULL)
+        {
+            directorySearch(argv[i], dir);
             closedir(dir);
         }
         struct stat st;
