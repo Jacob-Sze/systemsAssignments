@@ -35,18 +35,25 @@ int main(int argc, char **argv)
     {
         if ((dir = opendir(argv[i])) != NULL)
         {
-
             while ((dp = readdir(dir)) != NULL)
             {
                 struct stat st;
-                stat(dp->d_name, &st);
+                char *name = malloc(strlen(argv[i]) + strlen(dp->d_name) + 5);
+                strcpy(name, argv[i]);
+                if (argv[i][strlen(argv[i]) - 1] != '/')
+                {
+                    strcat(name, "/");
+                }
+                strcat(name, dp->d_name);
+                strcat(name, "\0");
+                stat(name, &st);
                 if (S_ISREG(st.st_mode))
                 {
-                    char *a = dp->d_name;
+                    char *a = name;
                     char buffer[10];
-
-                    int b = strlen(a);
-                    if (b > 4 && a[b - 1] == 't' && a[b - 2] == 'x' && a[b - 3] == 't' && a[b - 4] == '.' && a[0] != '.')
+                    char *c = dp->d_name;
+                    int b = strlen(c);
+                    if (b > 4 && c[b - 1] == 't' && c[b - 2] == 'x' && c[b - 3] == 't' && c[b - 4] == '.' && c[0] != '.')
                     {
                         int fd = open(a, O_RDONLY);
                         int count = 0;
@@ -77,6 +84,7 @@ int main(int argc, char **argv)
                                 }
                             }
                         }
+                        printf("%s\n", fileData);
                         char *token = strtok(fileData, " !\"#$%&()*+,./0123456789:;<=>?@[\\]^_`{|}~\n");
                         while (token != NULL)
                         {
@@ -100,6 +108,11 @@ int main(int argc, char **argv)
                                     }
                                     cur = cur->next;
                                 }
+                                if (strcmp(token, cur->key) == 0)
+                                {
+                                    checker = 1;
+                                    cur->count++;
+                                }
                                 if (checker == 0)
                                 {
                                     char *temp = malloc(strlen(token) * sizeof(char) + 1);
@@ -114,6 +127,7 @@ int main(int argc, char **argv)
                         free(fileData);
                     }
                 }
+                free(name);
             }
             closedir(dir);
         }
@@ -174,6 +188,11 @@ int main(int argc, char **argv)
                         }
                         cur = cur->next;
                     }
+                    if (strcmp(token, cur->key) == 0)
+                    {
+                        checker = 1;
+                        cur->count++;
+                    }
                     if (checker == 0)
                     {
                         char *temp = malloc(strlen(token) * sizeof(char) + 1);
@@ -190,25 +209,30 @@ int main(int argc, char **argv)
     }
     while (node != NULL)
     {
-        List* maxNode = node;
-        List* prevMax = NULL;
-        List* prev = node;
-        List* cur = node -> next;
-        while(cur != NULL){
-            if((maxNode->count==cur->count && strcmp(maxNode->key, cur->key)>0) || maxNode->count<cur->count){
+        List *maxNode = node;
+        List *prevMax = NULL;
+        List *prev = node;
+        List *cur = node->next;
+        while (cur != NULL)
+        {
+            if ((maxNode->count == cur->count && strcmp(maxNode->key, cur->key) > 0) || maxNode->count < cur->count)
+            {
                 maxNode = cur;
-                prevMax = prev;   
+                prevMax = prev;
             }
-            cur = cur -> next;
-            prev = prev ->next;
+            cur = cur->next;
+            prev = prev->next;
         }
         int length = snprintf(NULL, 0, "%s %d\n", maxNode->key, maxNode->count);
-        char* a = malloc((length+1) * sizeof(char));
-        snprintf(a, length+1, "%s %d\n", maxNode->key, maxNode->count);
+        char *a = malloc((length + 1) * sizeof(char));
+        snprintf(a, length + 1, "%s %d\n", maxNode->key, maxNode->count);
         write(output, a, length);
-        if(maxNode == node){
+        if (maxNode == node)
+        {
             node = node->next;
-        }else{
+        }
+        else
+        {
             prevMax->next = prevMax->next->next;
         }
         free(maxNode->key);
