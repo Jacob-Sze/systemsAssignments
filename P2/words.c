@@ -131,7 +131,6 @@ void directorySearch(char* dirName, DIR* dir){
 int main(int argc, char **argv)
 {
     DIR *dir;
-    int output = open("output.txt", O_WRONLY | O_CREAT, 0644);
     for (int i = 1; i < argc; i++)
     {
         if ((dir = opendir(argv[i])) != NULL)
@@ -234,7 +233,7 @@ int main(int argc, char **argv)
         int length = snprintf(NULL, 0, "%s %d\n", maxNode->key, maxNode->count);
         char *a = malloc((length + 1) * sizeof(char));
         snprintf(a, length + 1, "%s %d\n", maxNode->key, maxNode->count);
-        write(output, a, length);
+        write(1, a, length);
         if (maxNode == node)
         {
             node = node->next;
@@ -247,6 +246,5 @@ int main(int argc, char **argv)
         free(maxNode);
         free(a);
     }
-    close(output);
     return EXIT_SUCCESS;
 }
