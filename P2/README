@@ -17,13 +17,15 @@ We checked all aspects of our assignment with our testcases. We utilized the tes
 5. Given input: (Sample input, ensure match)
 Foo bar? Bar! Foo-bar baz--quux! 'oo? "Bar, bar."
 Super23foo.
-6. Given input: Distinguish between working directory and target (ex. if input ./words ./innerDirectorySameName and working directory
-and target directory both contain hello.txt, scan ./innerDirectorySameName/hello.txt, our innerDirectory hello.txt contains inner, outside something else)
+6. Distinguish between working directory and target (ex. if input ./words ./innerDirectorySameName and working directory and target directory both contain hello.txt, scan ./innerDirectorySameName/hello.txt, our innerDirectory hello.txt contains inner, outside something else)
 7. Our input: a3344z (Test with multiple numbers separating)
 8. Our input: ship sister sam (Test lexicographical ordering)
 9. Our input: Give directory to test scanning (ignore directories and txt files starting with .)
 10. Our input: '''''''''''''''''' (Test multiple apostrophes) 
-
+11. Our input: Very long word (Test length - input word 16836 characters, all one word)
+12. Test multiples directories/files as inputs
+13. Call words with no args
+14. Our input: foo'-bar (Test apostrophe before hyphen)
 __________________________________________________________
 Test descriptions/results (Not including different words on new lines for sake of space)
 
@@ -37,6 +39,10 @@ Test descriptions/results (Not including different words on new lines for sake o
 8. Expected - sam 1 ship 1 sister 1, Actual - sam 1 ship 1 sister 1
 9. Expected - a 1 b 1 reach 1 test 1 txt 1, Actual - a 1 b 1 reach 1 test 1 txt 1
 10. Expected - '''''''''''''''''' 1, Actual - '''''''''''''''''' 1
+11. Expected - Print as one word, Actual - it does print as one word without any overflow
+12. Expected/Actual match
+13. Expected/Actual - No response, new command line, no crash
+14. Expected - bar 1 foo' 1, Actual - bar 1 foo' 1
 
 As can be seen, all our expected outputs match actual, which include a variety of testcases, ones both provided (either conceptually
 or actual inputs, and some of our own implementations)
@@ -51,4 +57,4 @@ Design Notes
 For every item in argv, we check if it is directory or a file. For directories, we recursively go through the subdirectories while scanning 
 the .txt files. While reading the files, we removed all of the hypens that do not follow the rules. By seperating all of the non-letter
 characters exlcuding apostrophe through strtok, we add the unique words to a linked list or add to the count for repetive words. Finally,
-we print out all of the words from the linked list in a sorted alphabetical manner from highest count to lowest count. 
+we print out all of the words from the linked list in a sorted alphabetical manner from highest count to lowest count.
