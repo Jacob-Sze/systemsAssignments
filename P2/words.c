@@ -68,7 +68,7 @@ void directorySearch(char* dirName, DIR* dir){
                                 {
                                     fileData[i] = ' ';
                                 }
-                                else if (i == 0 || fileData[i + 1] == '-' || ((!(((int)fileData[i - 1]) >= 65 && ((int)fileData[i - 1]) <= 90)) && (!(((int)fileData[i - 1]) >= 97 && ((int)fileData[i - 1]) <= 122)) && !(fileData[i - 1] == '\'')) || ((!(((int)fileData[i + 1]) >= 65 && ((int)fileData[i + 1]) <= 90)) && (!(((int)fileData[i + 1]) >= 97 && ((int)fileData[i + 1]) <= 122)) && !(fileData[i + 1] == '\'')))
+                                else if (i == 0 || fileData[i + 1] == '-' || ((!(((int)fileData[i - 1]) >= 65 && ((int)fileData[i - 1]) <= 90)) && (!(((int)fileData[i - 1]) >= 97 && ((int)fileData[i - 1]) <= 122))) || ((!(((int)fileData[i + 1]) >= 65 && ((int)fileData[i + 1]) <= 90)) && (!(((int)fileData[i + 1]) >= 97 && ((int)fileData[i + 1]) <= 122))))
                                 {
                                     while (fileData[i] == '-')
                                     {
@@ -162,7 +162,7 @@ int main(int argc, char **argv)
                     {
                         fileData[i] = ' ';
                     }
-                    else if (i == 0 || fileData[i + 1] == '-' || ((!(((int)fileData[i - 1]) >= 65 && ((int)fileData[i - 1]) <= 90)) && (!(((int)fileData[i - 1]) >= 97 && ((int)fileData[i - 1]) <= 122)) && !(fileData[i - 1] == '\'')) || ((!(((int)fileData[i + 1]) >= 65 && ((int)fileData[i + 1]) <= 90)) && (!(((int)fileData[i + 1]) >= 97 && ((int)fileData[i + 1]) <= 122)) && !(fileData[i + 1] == '\'')))
+                    else if (i == 0 || fileData[i + 1] == '-' || ((!(((int)fileData[i - 1]) >= 65 && ((int)fileData[i - 1]) <= 90)) && (!(((int)fileData[i - 1]) >= 97 && ((int)fileData[i - 1]) <= 122))) || ((!(((int)fileData[i + 1]) >= 65 && ((int)fileData[i + 1]) <= 90)) && (!(((int)fileData[i + 1]) >= 97 && ((int)fileData[i + 1]) <= 122))))
                     {
                         while (fileData[i] == '-')
                         {
