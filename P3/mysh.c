@@ -30,7 +30,7 @@ char **wildCard(char *input)
         tvTwo = tvTwo + 1;
         char *path = malloc(strlen(input) - strlen(tvTwo) + 10);
         strncpy(path, input, strlen(input) - strlen(tvTwo) - 1);
-        path[strlen(input) - strlen(tvTwo)-1] = '\0';
+        path[strlen(input) - strlen(tvTwo) - 1] = '\0';
         if (strlen(input) - strlen(tvTwo) == 1)
         {
             strcpy(path, "./");
@@ -323,12 +323,14 @@ int main(int argv, char **argc)
                         storage[k] = temp[counting];
                         counting++;
                     }
+                    free(temp);
                 }
                 else
                 {
                     counter++;
                     storage = realloc(storage, sizeof(char *) * counter);
-                    storage[counter - 1] = processes;
+                    storage[counter - 1] = malloc(strlen(processes) + 1);
+                    strcpy(storage[counter - 1], processes);
                 }
                 processes = __strtok_r(0, " ", &savePointTwo);
             }
@@ -351,6 +353,9 @@ int main(int argv, char **argc)
                 }
                 dup2(fd[1], STDOUT_FILENO);
                 execv(file, storage);
+                for(int i = 1; i<counter;i++){
+                    free(storage[i]);
+                }
                 free(storage);
                 free(file);
             }
@@ -456,12 +461,14 @@ int main(int argv, char **argc)
                         storage[k] = temp[counting];
                         counting++;
                     }
+                    free(temp);
                 }
                 else
                 {
                     counter++;
                     storage = realloc(storage, sizeof(char *) * counter);
-                    storage[counter - 1] = processes;
+                    storage[counter - 1] = malloc(strlen(processes) + 1);
+                    strcpy(storage[counter - 1], processes);
                 }
                 processes = __strtok_r(0, " ", &savePointTwo);
             }
@@ -484,6 +491,9 @@ int main(int argv, char **argc)
                 }
                 dup2(fd[0], STDIN_FILENO);
                 execv(file, storage);
+                for(int i = 1; i<counter;i++){
+                    free(storage[i]);
+                }
                 free(storage);
                 free(file);
                 close(fpTwo);
@@ -534,7 +544,10 @@ int main(int argv, char **argc)
             }
             else if (strcmp(processes, "pwd") == 0)
             {
-                printf("%s\n", getcwd(NULL, 0));
+                char* a = NULL;
+                a = getcwd(a, 0);
+                printf("%s\n", a);
+                free(a);
             }
             else if (strcmp(processes, "which") == 0)
             {
@@ -693,12 +706,14 @@ int main(int argv, char **argc)
                             storage[k] = temp[counting];
                             counting++;
                         }
+                        free(temp);
                     }
                     else
                     {
                         counter++;
                         storage = realloc(storage, sizeof(char *) * counter);
-                        storage[counter - 1] = processes;
+                        storage[counter - 1] = malloc(strlen(processes) + 1);
+                        strcpy(storage[counter - 1], processes);
                     }
                     processes = __strtok_r(0, " <>", &savePoint);
                 }
@@ -741,6 +756,10 @@ int main(int argv, char **argc)
                 free(file);
                 free(input);
                 free(output);
+                for (int i = 1; i < counter; i++)
+                {
+                    free(storage[i]);
+                }
                 free(storage);
                 close(fpOne);
                 close(fpTwo);
