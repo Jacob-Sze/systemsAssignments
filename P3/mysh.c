@@ -46,20 +46,28 @@ char **wildCard(char *input)
             stat(file, &st);
             if (S_ISREG(st.st_mode))
             {
-                if (strstr(dp->d_name, tvTwo) && strlen(strstr(dp->d_name, tvTwo)) == strlen(tvTwo))
+                if (strstr(dp->d_name, tvTwo) && dp->d_name[0] != '.' && strlen(strstr(dp->d_name, tvTwo)) == strlen(tvTwo))
                 {
                     storage[counter - 1] = file;
                     counter++;
                     storage = realloc(storage, counter * sizeof(char *));
                     storage[counter - 1] = NULL;
                 }
+                else
+                {
+                    free(file);
+                }
+            }
+            else
+            {
+                free(file);
             }
         }
-
+        closedir(dir);
         free(path);
         tvTwo -= 1;
         free(tvTwo);
-        if (sizeof(storage) == sizeof(char *))
+        if (counter == 1)
         {
             counter++;
             storage = realloc(storage, counter * sizeof(char *));
@@ -77,9 +85,9 @@ char **wildCard(char *input)
     end = strtok(0, "*");
     if (end == NULL)
     {
-        char *path = malloc(strlen(input) - strlen(tvTwo + 1) + 1);
-        strncpy(path, input, strlen(input) - strlen(tvTwo + 1));
-        path[strlen(input) - strlen(tvTwo)] = '\0';
+        char *path = malloc(strlen(input) - strlen(start) + 1);
+        strncpy(path, input, strlen(input) - strlen(start) - 1);
+        path[strlen(input) - strlen(start) - 1] = '\0';
         if (strlen(input) - strlen(tvTwo) == 1)
         {
             strcpy(path, "./");
@@ -101,14 +109,23 @@ char **wildCard(char *input)
                     storage[counter - 1] = file;
                     counter++;
                     storage = realloc(storage, counter * sizeof(char *));
-                    storage[counter] = NULL;
+                    storage[counter - 1] = NULL;
                 }
+                else
+                {
+                    free(file);
+                }
+            }
+            else
+            {
+                free(file);
             }
         }
         free(path);
         free(start);
         free(tvTwo);
-        if (sizeof(storage) == sizeof(char *))
+        closedir(dir);
+        if (counter == 1)
         {
             counter++;
             storage = realloc(storage, counter * sizeof(char *));
@@ -122,14 +139,14 @@ char **wildCard(char *input)
     }
     else
     {
-        char *path = malloc(strlen(input) - strlen(tvTwo + 1) + 1);
-        strncpy(path, input, strlen(input) - strlen(tvTwo + 1));
-        path[strlen(input) - strlen(tvTwo)] = '\0';
-        DIR *dir = opendir(path);
-        if (strlen(input) - strlen(tvTwo) == 1)
+        char *path = malloc(strlen(input) - strlen(start) - strlen(end) + 5);
+        strncpy(path, input, strlen(input) - strlen(start) - strlen(end) - 1);
+        path[strlen(input) - strlen(start) - strlen(end) - 1] = '\0';
+        if (strlen(input) - strlen(start) - strlen(end) == 1)
         {
             strcpy(path, "./");
         }
+        DIR *dir = opendir(path);
         struct dirent *dp;
         while ((dp = readdir(dir)) != NULL)
         {
@@ -146,14 +163,23 @@ char **wildCard(char *input)
                     storage[counter - 1] = file;
                     counter++;
                     storage = realloc(storage, counter * sizeof(char *));
-                    storage[counter] = NULL;
+                    storage[counter - 1] = NULL;
+                }
+                else
+                {
+                    free(file);
                 }
             }
+            else
+            {
+                free(file);
+            }
         }
+        closedir(dir);
         free(path);
         free(tvTwo);
         free(start);
-        if (sizeof(storage) == sizeof(char *))
+        if (counter == 1)
         {
             counter++;
             storage = realloc(storage, counter * sizeof(char *));
@@ -198,7 +224,7 @@ int main(int argv, char **argc)
         command[0] = '\0';
         char buffer[1];
         int c;
-        while (c = read(readFile, buffer, 1) > 0)
+        while ((c = read(readFile, buffer, 1)) > 0)
         {
             if (buffer[0] == '\n')
             {
@@ -513,34 +539,55 @@ int main(int argv, char **argc)
             else if (strcmp(processes, "which") == 0)
             {
                 processes = __strtok_r(0, " ", &savePoint);
-                char *helper = malloc(strlen(processes) + 15);
+                if (processes == NULL)
+                {
+                    goto restart;
+                }
+                char *file = malloc(strlen(processes) + 2);
+                strcpy(file, processes);
+                processes = __strtok_r(0, " ", &savePoint);
+                if (processes != NULL)
+                {
+                    goto restart;
+                }
+                char *helper = malloc(strlen(file) + 30);
                 strcpy(helper, "/usr/local/bin/");
-                strcat(helper, processes);
+                strcat(helper, file);
                 if (access(helper, F_OK) >= 0)
                 {
-                    printf("%s\n", helper);
+                    printf("\n%s", helper);
                 }
                 else
                 {
                     strcpy(helper, "/usr/bin/");
-                    strcat(helper, processes);
+                    strcat(helper, file);
                     if (access(helper, F_OK) >= 0)
                     {
-                        printf("\n%s\n", helper);
+                        printf("\n%s", helper);
                     }
                     else
                     {
                         strcpy(helper, "/bin/");
-                        strcat(helper, processes);
+                        strcat(helper, file);
                         if (access(helper, F_OK) >= 0)
                         {
-                            printf("\n%s\n", helper);
+                            printf("\n%s", helper);
+                        }
+                        else
+                        {
+                            free(file);
+                            goto restart;
                         }
                     }
                 }
+                free(file);
             }
             else if (strcmp(processes, "exit") == 0)
             {
+                if (batch == 0)
+                {
+                    printf("\nExiting my shell\n");
+                }
                 return 0;
             }
             else
@@ -686,17 +733,17 @@ int main(int argv, char **argc)
                     }
 
                     execv(file, storage);
-                    free(file);
-                    free(input);
-                    free(output);
-                    free(storage);
-                    close(fpOne);
-                    close(fpTwo);
                 }
                 else if (pid < 0)
                 {
                     goto restart;
                 }
+                free(file);
+                free(input);
+                free(output);
+                free(storage);
+                close(fpOne);
+                close(fpTwo);
                 int status = 0;
                 int signals;
                 while ((signals = waitpid(pid, &status, 0)) > 0)
