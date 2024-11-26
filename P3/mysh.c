@@ -29,8 +29,8 @@ char **wildCard(char *input)
     {
         tvTwo = tvTwo + 1;
         char *path = malloc(strlen(input) - strlen(tvTwo) + 10);
-        strncpy(path, input, strlen(input) - strlen(tvTwo) + 1);
-        path[strlen(input) - strlen(tvTwo)] = '\0';
+        strncpy(path, input, strlen(input) - strlen(tvTwo) - 1);
+        path[strlen(input) - strlen(tvTwo)-1] = '\0';
         if (strlen(input) - strlen(tvTwo) == 1)
         {
             strcpy(path, "./");
