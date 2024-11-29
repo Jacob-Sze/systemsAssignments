@@ -71,7 +71,9 @@ char **wildCard(char *input)
         {
             counter++;
             storage = realloc(storage, counter * sizeof(char *));
-            storage[counter - 1] = input;
+            storage[counter - 2] = malloc(strlen(input) + 1);
+            strcpy(storage[counter - 2], input);
+            storage[counter - 1] = NULL;
             return storage;
         }
         else
@@ -85,10 +87,10 @@ char **wildCard(char *input)
     end = strtok(0, "*");
     if (end == NULL)
     {
-        char *path = malloc(strlen(input) - strlen(start) + 1);
-        strncpy(path, input, strlen(input) - strlen(start) - 1);
+        char *path = malloc(strlen(input) - strlen(start) + 5);
+        strncpy(path, input, strlen(input) - strlen(start) + 1);
         path[strlen(input) - strlen(start) - 1] = '\0';
-        if (strlen(input) - strlen(tvTwo) == 1)
+        if (strlen(input) - strlen(start) == 1)
         {
             strcpy(path, "./");
         }
@@ -129,7 +131,9 @@ char **wildCard(char *input)
         {
             counter++;
             storage = realloc(storage, counter * sizeof(char *));
-            storage[counter - 1] = input;
+            storage[counter - 2] = malloc(strlen(input) + 1);
+            strcpy(storage[counter - 2], input);
+            storage[counter - 1] = NULL;
             return storage;
         }
         else
@@ -163,6 +167,7 @@ char **wildCard(char *input)
                     storage[counter - 1] = file;
                     counter++;
                     storage = realloc(storage, counter * sizeof(char *));
+
                     storage[counter - 1] = NULL;
                 }
                 else
@@ -183,7 +188,9 @@ char **wildCard(char *input)
         {
             counter++;
             storage = realloc(storage, counter * sizeof(char *));
-            storage[counter - 1] = input;
+            storage[counter - 2] = malloc(strlen(input) + 1);
+            strcpy(storage[counter - 2], input);
+            storage[counter - 1] = NULL;
             return storage;
         }
         else
@@ -191,6 +198,11 @@ char **wildCard(char *input)
             return storage;
         }
     }
+}
+
+void handle_sig(int sig)
+{
+    printf("mysh: Terminated by signal number: %d", sig);
 }
 
 int main(int argv, char **argc)
@@ -206,6 +218,8 @@ int main(int argv, char **argc)
     {
         printf("Welcome to my shell!");
     }
+    int readFile = STDIN_FILENO;
+
     do
     {
     restart:
@@ -214,7 +228,6 @@ int main(int argv, char **argc)
             printf("\nmysh> ");
             fflush(stdout);
         }
-        int readFile = STDIN_FILENO;
         if (argv == 2 && check == 0)
         {
             readFile = open(argc[1], O_RDONLY);
@@ -267,14 +280,23 @@ int main(int argv, char **argc)
                     loop[j] = ' ';
                 }
             }
-            char **storage = malloc(0);
-            char *file = malloc(strlen(processes) + 50);
-            strcpy(file, processes);
+            char **storage = malloc(sizeof(char *) * 2);
+            char *processesTwo;
+            if (strstr(processes, " "))
+            {
+                processesTwo = __strtok_r(processes, " ", &savePointTwo);
+            }
+            else
+            {
+                processesTwo = processes;
+            }
+            char *file = malloc(strlen(processesTwo) + 50);
+            strcpy(file, processesTwo);
             if (!strstr(file, "/"))
             {
-                char *helper = malloc(strlen(processes) + 30);
+                char *helper = malloc(strlen(processesTwo) + 30);
                 strcpy(helper, "/usr/local/bin/");
-                strcat(helper, processes);
+                strcat(helper, processesTwo);
                 if (access(helper, F_OK) >= 0)
                 {
                     strcpy(file, helper);
@@ -282,7 +304,7 @@ int main(int argv, char **argc)
                 else
                 {
                     strcpy(helper, "/usr/bin/");
-                    strcat(helper, processes);
+                    strcat(helper, processesTwo);
                     if (access(helper, F_OK) >= 0)
                     {
                         strcpy(file, helper);
@@ -290,7 +312,7 @@ int main(int argv, char **argc)
                     else
                     {
                         strcpy(helper, "/bin/");
-                        strcat(helper, processes);
+                        strcat(helper, processesTwo);
                         if (access(helper, F_OK) >= 0)
                         {
                             strcpy(file, helper);
@@ -298,18 +320,24 @@ int main(int argv, char **argc)
                         else
                         {
                             printf("mysh: %s\n", strerror(errno));
+                            free(helper);
+                            free(file);
+                            free(storage);
                             goto restart;
                         }
                     }
                 }
+                free(helper);
             }
-            processes = __strtok_r(0, " ", &savePointTwo);
-            int counter = 0;
-            while (processes != NULL)
+            storage[0] = file;
+            storage[1] = NULL;
+            int counter = 2;
+            processesTwo = __strtok_r(0, " ", &savePointTwo);
+            while (processesTwo != NULL)
             {
-                if (strstr(processes, "*"))
+                if (strstr(processesTwo, "*"))
                 {
-                    char **temp = wildCard(processes);
+                    char **temp = wildCard(processesTwo);
                     int length = 0;
                     for (int i = 0; temp[i] != NULL; i++)
                     {
@@ -318,25 +346,29 @@ int main(int argv, char **argc)
                     counter += length;
                     storage = realloc(storage, sizeof(char *) * counter);
                     int counting = 0;
-                    for (int k = counter - length; k < counter; k++)
+                    for (int k = (counter - 1) - length; k < counter - 1; k++)
                     {
                         storage[k] = temp[counting];
                         counting++;
                     }
+                    storage[counter - 1] = NULL;
                     free(temp);
                 }
                 else
                 {
                     counter++;
                     storage = realloc(storage, sizeof(char *) * counter);
-                    storage[counter - 1] = malloc(strlen(processes) + 1);
-                    strcpy(storage[counter - 1], processes);
+                    storage[counter - 2] = malloc(strlen(processesTwo) + 1);
+                    strcpy(storage[counter - 2], processesTwo);
+                    storage[counter - 1] = NULL;
                 }
-                processes = __strtok_r(0, " ", &savePointTwo);
+                processesTwo = __strtok_r(0, " ", &savePointTwo);
             }
+            int checker = 0;
             pid_t pidOne = fork();
             if (pidOne == 0)
             {
+                setpgid(0, 0);
                 int fpTwo;
                 if (input)
                 {
@@ -353,16 +385,34 @@ int main(int argv, char **argc)
                 }
                 dup2(fd[1], STDOUT_FILENO);
                 execv(file, storage);
-                for(int i = 1; i<counter;i++){
+            }
+            else if (pidOne > 0)
+            {
+                for (int i = 1; i < 32; i++)
+                {
+                    if (i != 17)
+                    {
+                        signal(i, handle_sig);
+                    }
+                }
+            }
+            else
+            {
+                for (int i = 1; i < counter - 1; i++)
+                {
                     free(storage[i]);
                 }
                 free(storage);
                 free(file);
+                perror("mysh: ");
+                checker = 1;
             }
-            else
+            for (int i = 1; i < counter - 1; i++)
             {
-                goto restart;
+                free(storage[i]);
             }
+            free(storage);
+            free(file);
             int status = 0;
             int signals;
             while ((signals = waitpid(pidOne, &status, 0)) > 0)
@@ -376,6 +426,9 @@ int main(int argv, char **argc)
                     close(fd[1]);
                     goto restart;
                 }
+            }
+            if(checker == 1){
+                status = 1;
             }
             if (status != 0)
             {
@@ -404,14 +457,22 @@ int main(int argv, char **argc)
                     loop[j] = ' ';
                 }
             }
-            storage = malloc(0);
-            file = malloc(strlen(processes) + 50);
-            strcpy(file, processes);
+            storage = malloc(sizeof(char *) * 2);
+            if (strstr(processes, " "))
+            {
+                processesTwo = __strtok_r(processes, " ", &savePointTwo);
+            }
+            else
+            {
+                processesTwo = processes;
+            }
+            file = malloc(strlen(processesTwo) + 50);
+            strcpy(file, processesTwo);
             if (!strstr(file, "/"))
             {
-                char *helper = malloc(strlen(processes) + 30);
+                char *helper = malloc(strlen(processesTwo) + 30);
                 strcpy(helper, "/usr/local/bin/");
-                strcat(helper, processes);
+                strcat(helper, processesTwo);
                 if (access(helper, F_OK) >= 0)
                 {
                     strcpy(file, helper);
@@ -419,7 +480,7 @@ int main(int argv, char **argc)
                 else
                 {
                     strcpy(helper, "/usr/bin/");
-                    strcat(helper, processes);
+                    strcat(helper, processesTwo);
                     if (access(helper, F_OK) >= 0)
                     {
                         strcpy(file, helper);
@@ -427,7 +488,7 @@ int main(int argv, char **argc)
                     else
                     {
                         strcpy(helper, "/bin/");
-                        strcat(helper, processes);
+                        strcat(helper, processesTwo);
                         if (access(helper, F_OK) >= 0)
                         {
                             strcpy(file, helper);
@@ -436,18 +497,22 @@ int main(int argv, char **argc)
                         {
                             printf("mysh: %s", strerror(errno));
                             fflush(stdout);
+                            free(helper);
                             goto restart;
                         }
                     }
                 }
+                free(helper);
             }
-            processes = __strtok_r(0, " ", &savePointTwo);
-            counter = 0;
-            while (processes != NULL)
+            storage[0] = file;
+            storage[1] = NULL;
+            counter = 2;
+            processesTwo = __strtok_r(0, " ", &savePointTwo);
+            while (processesTwo != NULL)
             {
-                if (strstr(processes, "*"))
+                if (strstr(processesTwo, "*"))
                 {
-                    char **temp = wildCard(processes);
+                    char **temp = wildCard(processesTwo);
                     int length = 0;
                     for (int i = 0; temp[i] != NULL; i++)
                     {
@@ -456,26 +521,31 @@ int main(int argv, char **argc)
                     counter += length;
                     storage = realloc(storage, sizeof(char *) * counter);
                     int counting = 0;
-                    for (int k = counter - length; k < counter; k++)
+                    for (int k = (counter - 1) - length; k < counter - 1; k++)
                     {
                         storage[k] = temp[counting];
                         counting++;
                     }
+                    storage[counter - 1] = NULL;
                     free(temp);
                 }
                 else
                 {
                     counter++;
                     storage = realloc(storage, sizeof(char *) * counter);
-                    storage[counter - 1] = malloc(strlen(processes) + 1);
-                    strcpy(storage[counter - 1], processes);
+                    storage[counter - 2] = malloc(strlen(processesTwo) + 1);
+                    strcpy(storage[counter - 2], processesTwo);
+                    storage[counter - 1] = NULL;
                 }
-                processes = __strtok_r(0, " ", &savePointTwo);
+                processesTwo = __strtok_r(0, " ", &savePointTwo);
             }
+            checker = 0;
             int fpTwo;
             pid_t pidTwo = fork();
             if (pidTwo == 0)
             {
+                setpgid(0, 0);
+
                 if (output)
                 {
                     fpTwo = open(output, O_RDONLY);
@@ -491,13 +561,24 @@ int main(int argv, char **argc)
                 }
                 dup2(fd[0], STDIN_FILENO);
                 execv(file, storage);
-                for(int i = 1; i<counter;i++){
-                    free(storage[i]);
-                }
-                free(storage);
-                free(file);
                 close(fpTwo);
             }
+            else
+            {
+                for (int i = 1; i < 32; i++)
+                {
+                    if (i != 17)
+                    {
+                        signal(i, handle_sig);
+                    }
+                }
+            }
+            for (int i = 1; i < counter; i++)
+            {
+                free(storage[i]);
+            }
+            free(storage);
+            free(file);
             int statusTwo = 0;
             int signalsTwo = 0;
             while ((signalsTwo = waitpid(pidTwo, &statusTwo, 0)) > 0)
@@ -506,8 +587,10 @@ int main(int argv, char **argc)
                 {
                     char *a;
                     psignal(WTERMSIG(statusTwo), &a);
-                    printf("mysh: Terminated by signal: %s", a);
                 }
+            }
+            if(checker == 1){
+                statusTwo = 1;
             }
             if (statusTwo != 0)
             {
@@ -544,7 +627,7 @@ int main(int argv, char **argc)
             }
             else if (strcmp(processes, "pwd") == 0)
             {
-                char* a = NULL;
+                char *a = NULL;
                 a = getcwd(a, 0);
                 printf("%s\n", a);
                 free(a);
@@ -684,10 +767,11 @@ int main(int argv, char **argc)
                     }
                     free(helper);
                 }
-                char **storage = malloc(sizeof(char *));
+                char **storage = malloc(sizeof(char *) * 2);
                 storage[0] = processes;
+                storage[1] = NULL;
                 processes = __strtok_r(0, " <>", &savePoint);
-                int counter = 1;
+                int counter = 2;
                 while (processes != NULL)
                 {
                     if (strstr(processes, "*"))
@@ -701,19 +785,21 @@ int main(int argv, char **argc)
                         counter += length;
                         storage = realloc(storage, sizeof(char *) * counter);
                         int counting = 0;
-                        for (int k = counter - length; k < counter; k++)
+                        for (int k = (counter - 1) - length; k < counter - 1; k++)
                         {
                             storage[k] = temp[counting];
                             counting++;
                         }
+                        storage[counter - 1] = NULL;
                         free(temp);
                     }
                     else
                     {
                         counter++;
                         storage = realloc(storage, sizeof(char *) * counter);
-                        storage[counter - 1] = malloc(strlen(processes) + 1);
-                        strcpy(storage[counter - 1], processes);
+                        storage[counter - 2] = malloc(strlen(processes) + 1);
+                        strcpy(storage[counter - 2], processes);
+                        storage[counter - 1] = NULL;
                     }
                     processes = __strtok_r(0, " <>", &savePoint);
                 }
@@ -722,6 +808,7 @@ int main(int argv, char **argc)
                 pid_t pid = fork();
                 if (pid == 0)
                 {
+                    setpgid(0, 0);
                     if (output)
                     {
                         fpOne = open(output, O_WRONLY | O_TRUNC | O_CREAT, 0644);
@@ -746,12 +833,30 @@ int main(int argv, char **argc)
                             goto restart;
                         }
                     }
-
                     execv(file, storage);
                 }
-                else if (pid < 0)
+                else
                 {
-                    goto restart;
+                    for (int i = 1; i < 32; i++)
+                    {
+                        if(i != 17){
+                            signal(i, handle_sig);
+                        }
+                    }
+                    int status = 0;
+                    int signals;
+                    while ((signals = waitpid(pid, &status, 0)) > 0)
+                    {
+                        if (WIFSIGNALED(status))
+                        {
+                            char *a;
+                            psignal(WTERMSIG(status), &a);
+                        }
+                    }
+                    if (status != 0)
+                    {
+                        printf("mysh: Command Failed: code %d", status);
+                    }
                 }
                 free(file);
                 free(input);
@@ -763,21 +868,6 @@ int main(int argv, char **argc)
                 free(storage);
                 close(fpOne);
                 close(fpTwo);
-                int status = 0;
-                int signals;
-                while ((signals = waitpid(pid, &status, 0)) > 0)
-                {
-                    if (WIFSIGNALED(status))
-                    {
-                        char *a;
-                        psignal(WTERMSIG(status), &a);
-                        printf("mysh: Terminated by signal: %s", a);
-                    }
-                }
-                if (status != 0)
-                {
-                    printf("mysh: Command Failed: code %d", status);
-                }
             }
         }
         if (c == 0)
