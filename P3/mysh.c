@@ -398,12 +398,6 @@ int main(int argv, char **argc)
             }
             else
             {
-                for (int i = 1; i < counter - 1; i++)
-                {
-                    free(storage[i]);
-                }
-                free(storage);
-                free(file);
                 perror("mysh: ");
                 checker = 1;
             }
@@ -563,7 +557,7 @@ int main(int argv, char **argc)
                 execv(file, storage);
                 close(fpTwo);
             }
-            else
+            else if(pidTwo > 0)
             {
                 for (int i = 1; i < 32; i++)
                 {
@@ -572,6 +566,9 @@ int main(int argv, char **argc)
                         signal(i, handle_sig);
                     }
                 }
+            }else{
+                perror("mysh: ");
+                checker = 1;
             }
             for (int i = 1; i < counter; i++)
             {
@@ -835,7 +832,7 @@ int main(int argv, char **argc)
                     }
                     execv(file, storage);
                 }
-                else
+                else if(pid > 0)
                 {
                     for (int i = 1; i < 32; i++)
                     {
