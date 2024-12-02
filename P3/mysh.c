@@ -253,17 +253,17 @@ int main(int argv, char **argc)
         {
             char *savePoint, savePointTwo;
             char *processes = __strtok_r(command, "|", &savePoint);
-            char *input;
-            char *output;
+            char *input = NULL;
+            char *output = NULL;
             int fd[2];
             int checking = pipe(fd);
             if (checking < 0)
             {
                 goto restart;
             }
-            if (strstr(savePoint, "<"))
+            if (strstr(processes, "<"))
             {
-                char *loop = strstr(savePoint, "<") + 1;
+                char *loop = strstr(processes, "<") + 1;
                 while (loop[0] == ' ')
                 {
                     loop += 1;
@@ -273,8 +273,9 @@ int main(int argv, char **argc)
                 {
                     i++;
                 }
-                input = malloc(i);
+                input = malloc(i+1);
                 strncpy(input, loop, i);
+                input[i] = '\0';
                 for (int j = 0; j < i; j++)
                 {
                     loop[j] = ' ';
@@ -317,14 +318,6 @@ int main(int argv, char **argc)
                         {
                             strcpy(file, helper);
                         }
-                        else
-                        {
-                            printf("mysh: %s\n", strerror(errno));
-                            free(helper);
-                            free(file);
-                            free(storage);
-                            goto restart;
-                        }
                     }
                 }
                 free(helper);
@@ -332,7 +325,7 @@ int main(int argv, char **argc)
             storage[0] = file;
             storage[1] = NULL;
             int counter = 2;
-            processesTwo = __strtok_r(0, " ", &savePointTwo);
+            processesTwo = __strtok_r(0, " <>", &savePointTwo);
             while (processesTwo != NULL)
             {
                 if (strstr(processesTwo, "*"))
@@ -362,7 +355,7 @@ int main(int argv, char **argc)
                     strcpy(storage[counter - 2], processesTwo);
                     storage[counter - 1] = NULL;
                 }
-                processesTwo = __strtok_r(0, " ", &savePointTwo);
+                processesTwo = __strtok_r(0, " <>", &savePointTwo);
             }
             int checker = 0;
             pid_t pidOne = fork();
@@ -376,18 +369,17 @@ int main(int argv, char **argc)
                     if (fpTwo > 0)
                     {
                         dup2(fpTwo, STDIN_FILENO);
+
                     }
-                    else
-                    {
-                        goto restart;
-                    }
-                    free(input);
                 }
                 dup2(fd[1], STDOUT_FILENO);
+                dup2(fd[1], STDERR_FILENO);
                 execv(file, storage);
             }
             else if (pidOne > 0)
             {
+                signal(SIGTTOU, SIG_IGN);
+                setpgid(pidOne, pidOne);
                 for (int i = 1; i < 32; i++)
                 {
                     if (i != 17)
@@ -395,19 +387,11 @@ int main(int argv, char **argc)
                         signal(i, handle_sig);
                     }
                 }
+                close(fd[1]);
             }
             else
             {
                 perror("mysh: ");
-                for (int i = 1; i < counter - 1; i++)
-                {
-                    free(storage[i]);
-                }
-                free(storage);
-                free(file);
-                close(fd[0]);
-                close(fd[1]);
-                goto restart;
             }
             for (int i = 1; i < counter - 1; i++)
             {
@@ -416,19 +400,7 @@ int main(int argv, char **argc)
             free(storage);
             free(file);
             int status = 0;
-            int signals;
-            while ((signals = waitpid(pidOne, &status, 0)) > 0)
-            {
-                if (WIFSIGNALED(status))
-                {
-                    char *a;
-                    psignal(WTERMSIG(status), &a);
-                    printf("mysh: Terminated by signal: %s\n", a);
-                    close(fd[0]);
-                    close(fd[1]);
-                    goto restart;
-                }
-            }
+            int signals = waitpid(pidOne, &status, 0);
             if (checker == 1)
             {
                 status = 1;
@@ -436,25 +408,23 @@ int main(int argv, char **argc)
             if (status != 0)
             {
                 printf("mysh: Command Failed: code %d\n", status);
-                close(fd[0]);
-                close(fd[1]);
-                goto restart;
             }
             processes = __strtok_r(0, "|", &savePoint);
-            if (strstr(savePoint, ">"))
+            if (strstr(processes, ">"))
             {
-                char *loop = strstr(savePoint, ">") + 1;
+                char *loop = strstr(processes, ">") + 1;
                 while (loop[0] == ' ')
                 {
                     loop += 1;
                 }
                 int i = 0;
-                while (loop[i] != '\0' && loop[i] != ' ' && loop[i] != '<')
+                while (loop[i] != '\0' && loop[i] != ' ' && loop[i] != 2)
                 {
                     i++;
                 }
-                output = malloc(i + 1);
-                strncpy(output, loop, i + 1);
+                output = malloc(i+1);
+                strncpy(output, loop, i);
+                output[i] = '\0';
                 for (int j = 0; j < i; j++)
                 {
                     loop[j] = ' ';
@@ -496,13 +466,6 @@ int main(int argv, char **argc)
                         {
                             strcpy(file, helper);
                         }
-                        else
-                        {
-                            printf("mysh: %s", strerror(errno));
-                            fflush(stdout);
-                            free(helper);
-                            goto restart;
-                        }
                     }
                 }
                 free(helper);
@@ -510,7 +473,7 @@ int main(int argv, char **argc)
             storage[0] = file;
             storage[1] = NULL;
             counter = 2;
-            processesTwo = __strtok_r(0, " ", &savePointTwo);
+            processesTwo = __strtok_r(0, " <>", &savePointTwo);
             while (processesTwo != NULL)
             {
                 if (strstr(processesTwo, "*"))
@@ -540,7 +503,7 @@ int main(int argv, char **argc)
                     strcpy(storage[counter - 2], processesTwo);
                     storage[counter - 1] = NULL;
                 }
-                processesTwo = __strtok_r(0, " ", &savePointTwo);
+                processesTwo = __strtok_r(0, " <>", &savePointTwo);
             }
             checker = 0;
             int fpTwo;
@@ -548,26 +511,22 @@ int main(int argv, char **argc)
             if (pidTwo == 0)
             {
                 setpgid(0, 0);
-
                 if (output)
                 {
-                    fpTwo = open(output, O_RDONLY);
+                    fpTwo = open(output, O_WRONLY | O_TRUNC | O_CREAT, 0644);
                     if (fpTwo > 0)
                     {
                         dup2(fpTwo, STDOUT_FILENO);
+                        dup2(fpTwo, STDERR_FILENO);
                     }
-                    else
-                    {
-                        goto restart;
-                    }
-                    free(output);
                 }
                 dup2(fd[0], STDIN_FILENO);
                 execv(file, storage);
-                close(fpTwo);
             }
             else if (pidTwo > 0)
             {
+                signal(SIGTTOU, SIG_IGN);
+                setpgid(pidTwo, pidTwo);
                 for (int i = 1; i < 32; i++)
                 {
                     if (i != 17)
@@ -579,15 +538,6 @@ int main(int argv, char **argc)
             else
             {
                 perror("mysh: ");
-                for (int i = 1; i < counter; i++)
-                {
-                    free(storage[i]);
-                }
-                free(storage);
-                free(file);
-                close(fd[0]);
-                close(fd[1]);
-                goto restart;
             }
             for (int i = 1; i < counter; i++)
             {
@@ -615,6 +565,12 @@ int main(int argv, char **argc)
             }
             close(fd[0]);
             close(fd[1]);
+            if(input){
+                free(input);
+            }
+            if(output){
+                free(output);
+            }
         }
         else
         {
