@@ -399,7 +399,15 @@ int main(int argv, char **argc)
             else
             {
                 perror("mysh: ");
-                checker = 1;
+                for (int i = 1; i < counter - 1; i++)
+                {
+                    free(storage[i]);
+                }
+                free(storage);
+                free(file);
+                close(fd[0]);
+                close(fd[1]);
+                goto restart;
             }
             for (int i = 1; i < counter - 1; i++)
             {
@@ -421,7 +429,8 @@ int main(int argv, char **argc)
                     goto restart;
                 }
             }
-            if(checker == 1){
+            if (checker == 1)
+            {
                 status = 1;
             }
             if (status != 0)
@@ -557,7 +566,7 @@ int main(int argv, char **argc)
                 execv(file, storage);
                 close(fpTwo);
             }
-            else if(pidTwo > 0)
+            else if (pidTwo > 0)
             {
                 for (int i = 1; i < 32; i++)
                 {
@@ -566,9 +575,19 @@ int main(int argv, char **argc)
                         signal(i, handle_sig);
                     }
                 }
-            }else{
+            }
+            else
+            {
                 perror("mysh: ");
-                checker = 1;
+                for (int i = 1; i < counter; i++)
+                {
+                    free(storage[i]);
+                }
+                free(storage);
+                free(file);
+                close(fd[0]);
+                close(fd[1]);
+                goto restart;
             }
             for (int i = 1; i < counter; i++)
             {
@@ -586,7 +605,8 @@ int main(int argv, char **argc)
                     psignal(WTERMSIG(statusTwo), &a);
                 }
             }
-            if(checker == 1){
+            if (checker == 1)
+            {
                 statusTwo = 1;
             }
             if (statusTwo != 0)
@@ -832,11 +852,12 @@ int main(int argv, char **argc)
                     }
                     execv(file, storage);
                 }
-                else if(pid > 0)
+                else if (pid > 0)
                 {
                     for (int i = 1; i < 32; i++)
                     {
-                        if(i != 17){
+                        if (i != 17)
+                        {
                             signal(i, handle_sig);
                         }
                     }
