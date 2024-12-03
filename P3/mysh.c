@@ -649,6 +649,7 @@ int main(int argv, char **argc)
             }
             else
             {
+                int inputSave = dup(STDIN_FILENO);
                 char *output = NULL;
                 char *input = NULL;
                 if (strstr(savePoint, ">"))
@@ -719,13 +720,6 @@ int main(int argv, char **argc)
                             {
                                 strcpy(file, helper);
                             }
-                            else
-                            {
-                                free(helper);
-                                free(file);
-                                printf("mysh: %s", strerror(errno));
-                                goto restart;
-                            }
                         }
                     }
                     free(helper);
@@ -769,6 +763,7 @@ int main(int argv, char **argc)
                 int fpOne;
                 int fpTwo;
                 pid_t pid = fork();
+
                 if (pid == 0)
                 {
                     setpgid(0, 0);
@@ -792,7 +787,7 @@ int main(int argv, char **argc)
                     }
                     if(execv(file, storage) == -1){
                         perror("mysh:");
-                        return 1;
+                        exit(1);
                     }
                     
                 }
@@ -830,6 +825,8 @@ int main(int argv, char **argc)
                 free(storage);
                 close(fpOne);
                 close(fpTwo);
+                dup2(savePoint, STDIN_FILENO);
+                close(savePoint);
             }
         }
         if (c == 0)
