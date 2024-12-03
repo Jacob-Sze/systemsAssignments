@@ -200,13 +200,19 @@ char **wildCard(char *input)
     }
 }
 
-void handle_sig(int sig)
-{
-    printf("mysh: Terminated by signal number: %d\n", sig);
+void sig_handle(int sig){
+    printf("mysh: Terminated by signal: %d\n", sig);
 }
 
 int main(int argv, char **argc)
 {
+    for (int i = 0; i < 32; i++)
+    {
+        if (i != 17)
+        {
+            signal(i, sig_handle);
+        }
+    }
     char *command = malloc(1);
     int batch = 0;
     int check = 0;
@@ -251,13 +257,16 @@ int main(int argv, char **argc)
         }
         if (strstr(command, "|"))
         {
-            int saved_stdin = dup(STDIN_FILENO);
+
             char *savePoint, savePointTwo;
             char *processes = __strtok_r(command, "|", &savePoint);
             char *input = NULL;
             char *output = NULL;
             int fd[2];
-            int checking = pipe(fd);
+            if (pipe(fd) == -1)
+            {
+                perror("mysh");
+            };
             if (strstr(processes, "<"))
             {
                 char *loop = strstr(processes, "<") + 1;
@@ -378,32 +387,13 @@ int main(int argv, char **argc)
                     exit(1);
                 }
             }
-            else if (pidOne > 0)
-            {
-                signal(SIGTTOU, SIG_IGN);
-                setpgid(pidOne, pidOne);
-                for (int i = 1; i < 32; i++)
-                {
-                    if (i != 17)
-                    {
-                        signal(i, handle_sig);
-                    }
-                }
-                int status = 0;
-                waitpid(pidOne, &status, 0);
-                close(fd[1]);
-                if (WIFEXITED(status) && WEXITSTATUS(status) != 0)
-                {
-                    printf("mysh: Command Failed: code %d\n", WEXITSTATUS(status));
-                }
-            }
+            setpgid(pidOne, pidOne);
             for (int i = 1; i < counter - 1; i++)
             {
                 free(storage[i]);
             }
             free(storage);
             free(file);
-            int status = 0;
             processes = __strtok_r(0, "|", &savePoint);
             if (strstr(processes, ">"))
             {
@@ -524,26 +514,29 @@ int main(int argv, char **argc)
                     exit(1);
                 }
             }
-            else if (pidTwo > 0)
-            {
-                signal(SIGTTOU, SIG_IGN);
-                setpgid(pidTwo, pidTwo);
-                for (int i = 1; i < 32; i++)
-                {
-                    if (i != 17)
-                    {
-                        signal(i, handle_sig);
-                    }
-                }
-                int statusTwo = 0;
-                waitpid(pidTwo, &statusTwo, 0);
-                if (WIFEXITED(statusTwo) && WEXITSTATUS(statusTwo) != 0)
-                {
-                    printf("mysh: Command Failed: code %d\n", WEXITSTATUS(statusTwo));
-                }
-            }
+            setpgid(pidTwo, pidTwo);
             close(fd[0]);
             close(fd[1]);
+            int status = 0;
+            int statusTwo = 0;
+            waitpid(pidOne, &status, 0);
+            if (WIFEXITED(status) && WEXITSTATUS(status) != 0)
+            {
+                printf("mysh: Command Failed: code %d\n", WEXITSTATUS(status));
+            }
+            else if (WIFSIGNALED(status))
+            {
+                printf("mysh: Terminated by signal: %d\n", WTERMSIG(status));
+            }
+            waitpid(pidTwo, &statusTwo, 0);
+            if (WIFEXITED(statusTwo) && WEXITSTATUS(statusTwo) != 0)
+            {
+                printf("mysh: Command Failed: code %d\n", WEXITSTATUS(statusTwo));
+            }
+            else if (WIFSIGNALED(status) && WEXITSTATUS(statusTwo) != 0)
+            {
+                printf("mysh: Terminated by signal: %d\n", WTERMSIG(statusTwo));
+            }
             for (int i = 1; i < counter; i++)
             {
                 free(storage[i]);
@@ -631,7 +624,7 @@ int main(int argv, char **argc)
                         }
                         else
                         {
-                            perror("mysh:");
+                            perror("mysh");
                         }
                     }
                 }
@@ -783,29 +776,25 @@ int main(int argv, char **argc)
                             close(fpTwo);
                         }
                     }
-                    if(execv(file, storage) == -1){
-                        perror("mysh:");
+                    if (execv(file, storage) == -1)
+                    {
+                        perror("mysh");
                         exit(1);
                     }
-                    
                 }
                 else if (pid > 0)
                 {
-                    signal(SIGTTOU, SIG_IGN);
                     setpgid(pid, pid);
-                    for (int i = 1; i < 32; i++)
-                    {
-                        if (i != 17)
-                        {
-                            signal(i, handle_sig);
-                        }
-                    }
-                    int statusTwo = 0;
-                    waitpid(pid, &statusTwo, 0);
-                    if (WIFEXITED(statusTwo) && WEXITSTATUS(statusTwo) != 0)
-                    {
-                        printf("mysh: Command Failed: code %d\n", WEXITSTATUS(statusTwo));
-                    }
+                }
+                int statusTwo = 0;
+                waitpid(pid, &statusTwo, 0);
+                if (WIFEXITED(statusTwo) && WEXITSTATUS(statusTwo) != 0)
+                {
+                    printf("mysh: Command Failed: code %d\n", WEXITSTATUS(statusTwo));
+                }
+                else if (WIFSIGNALED(statusTwo) && WEXITSTATUS(statusTwo) != 0)
+                {
+                    printf("mysh: Terminated by signal: %d\n", WTERMSIG(statusTwo));
                 }
                 free(file);
                 if (input)
