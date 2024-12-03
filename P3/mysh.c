@@ -202,7 +202,7 @@ char **wildCard(char *input)
 
 void handle_sig(int sig)
 {
-    printf("mysh: Terminated by signal number: %d", sig);
+    printf("mysh: Terminated by signal number: %d\n", sig);
 }
 
 int main(int argv, char **argc)
@@ -649,7 +649,6 @@ int main(int argv, char **argc)
             }
             else
             {
-                int inputSave = dup(STDIN_FILENO);
                 char *output = NULL;
                 char *input = NULL;
                 if (strstr(savePoint, ">"))
@@ -763,7 +762,6 @@ int main(int argv, char **argc)
                 int fpOne;
                 int fpTwo;
                 pid_t pid = fork();
-
                 if (pid == 0)
                 {
                     setpgid(0, 0);
@@ -823,11 +821,6 @@ int main(int argv, char **argc)
                     free(storage[i]);
                 }
                 free(storage);
-                close(fpOne);
-                close(fpTwo);
-                dup2(savePoint, STDIN_FILENO);
-                close(savePoint);
-
             }
         }
         if (c == 0)
