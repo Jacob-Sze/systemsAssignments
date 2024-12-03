@@ -216,7 +216,7 @@ int main(int argv, char **argc)
     }
     else
     {
-        printf("Welcome to my shell!");
+        printf("Welcome to my shell!\n");
     }
     int readFile = STDIN_FILENO;
 
@@ -225,7 +225,7 @@ int main(int argv, char **argc)
     restart:
         if (batch != 1)
         {
-            printf("\nmysh> ");
+            printf("mysh> ");
             fflush(stdout);
         }
         if (argv == 2 && check == 0)
@@ -827,6 +827,7 @@ int main(int argv, char **argc)
                 close(fpTwo);
                 dup2(savePoint, STDIN_FILENO);
                 close(savePoint);
+
             }
         }
         if (c == 0)
