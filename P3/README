@@ -79,6 +79,7 @@ by 10 then prints them out into a file named fileOut, giving us the expected/act
 6h. acroread (barename file) outputs acroread was discontinued by Adobe in 2012. Please use "atril" instead. when called
 6j. ls | grep gives a usage hint in real shell and does in ours as well, ls | grep .txt displays all files ending in .txt, so input.txt and testingInput.txt
 
+Our outputs behave like real shell (with some minor formatting differences) and give correct output. Most testing is in interactive mode but can be applied to batchmode through the scripts. The pipelien for 5c/6f is the same but shows both batch mode and interactive work the same functionality wise
 __________________________________________________________
 Design Notes
 
