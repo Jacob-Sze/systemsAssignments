@@ -41,8 +41,8 @@ We checked all aspects of our assignment with our testcases. We utilized the tes
 6h. Call a program using bare name (acroread)
 6i. Broken fork (one side of pipe has non-existent command)
 6j. ls | grep, ls | grep .txt
-6k. Signals (Ctrl+C, Ctrl+Z)
-
+6k. Signals (ping google.com | ls , testingTwo.c)
+6l. Multiple stdout redirections (ls > a.txt > b.txt)
 __________________________________________________________
 Test descriptions/results 
 
@@ -83,3 +83,9 @@ Our outputs behave like real shell (with some minor formatting differences) and 
 __________________________________________________________
 Design Notes
 
+mysh starts by checking if there is a second argument or non-terminal STDIN_FILENO. If so, the terminal changes into batch mode. For input, mysh copies into a string until the next line 
+character. Then, it checks with strstr() if the command contains an |. In that case, the command moves onto piping. It first checks for redirection using strstr. Assuming there are no errors 
+(If so, then stop the command immediately), remove redirection tokens. After that, with strtok_r and pipe, mysh seperates into two executable commands and connects them with the pipe. Finally, mysh finishes off
+the command with two pidwait function. For wildcards, mysh utilizes a combination of strstr and directory searching in order to find the files it needs. Then, it adds the wildcard char array to the storage array.
+For anything that is not piping, mysh checks the first token. If it is a built-in command, it will do its objective or return an error if needed to. Else, then mysh checks the command for redirection. If there is
+no '/', then mysh checks the bare name folders. Finally, it executes the program and print any errors it returns. 
