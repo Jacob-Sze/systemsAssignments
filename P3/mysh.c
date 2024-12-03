@@ -266,6 +266,10 @@ int main(int argv, char **argc)
             if (pipe(fd) == -1)
             {
                 perror("mysh");
+                if(batch != 1){
+                    printf("mysh: Command Failed: code 1\n");
+                }
+                goto restart;
             };
             if (strstr(processes, "<"))
             {
@@ -520,16 +524,12 @@ int main(int argv, char **argc)
             int status = 0;
             int statusTwo = 0;
             waitpid(pidOne, &status, 0);
-            if (WIFEXITED(status) && WEXITSTATUS(status) != 0)
-            {
-                printf("mysh: Command Failed: code %d\n", WEXITSTATUS(status));
-            }
-            else if (WIFSIGNALED(status))
+            if (WIFSIGNALED(status) && WEXITSTATUS(status) != 0)
             {
                 printf("mysh: Terminated by signal: %d\n", WTERMSIG(status));
             }
             waitpid(pidTwo, &statusTwo, 0);
-            if (WIFEXITED(statusTwo) && WEXITSTATUS(statusTwo) != 0)
+            if (WIFEXITED(statusTwo) && WEXITSTATUS(statusTwo) != 0 && batch != 1)
             {
                 printf("mysh: Command Failed: code %d\n", WEXITSTATUS(statusTwo));
             }
@@ -565,12 +565,14 @@ int main(int argv, char **argc)
                 processes = __strtok_r(0, " ", &savePoint);
                 if (processes == NULL)
                 {
+                    printf("cd: Wrong Number of Arguments\n");
                     goto restart;
                 }
                 char *temp = processes;
                 processes = __strtok_r(0, " ", &savePoint);
                 if (processes != NULL)
                 {
+                    printf("cd: Wrong Number of Arguments\n");
                     goto restart;
                 }
                 if (chdir(temp) == -1)
@@ -788,7 +790,7 @@ int main(int argv, char **argc)
                 }
                 int statusTwo = 0;
                 waitpid(pid, &statusTwo, 0);
-                if (WIFEXITED(statusTwo) && WEXITSTATUS(statusTwo) != 0)
+                if (WIFEXITED(statusTwo) && WEXITSTATUS(statusTwo) != 0 && batch != 1)
                 {
                     printf("mysh: Command Failed: code %d\n", WEXITSTATUS(statusTwo));
                 }
