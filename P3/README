@@ -1,0 +1,84 @@
+Systems Programming Assignment 3 Write up - myshell
+__________________________________________________________
+
+Jacob Sze - jms1200 / jms1200@scarletmail.rutgers.edu
+Neil Patel - np964 / np964@scarletmail.rutgers.edu
+
+__________________________________________________________
+Our Test Plan
+
+Our testcases covered all aspects of the built in commands 
+We checked all aspects of our assignment with our testcases. We utilized the testcases provided and added our own, altogether they are:
+
+1. cd testing (built-in 1)
+1a. cd into non-existent directory
+1b. cd into subdirectory
+1c. cd into parent directory (.. or ../..)
+
+2. pwd testing (built-in 2)
+
+3. which testing (built-in 3)
+3a. which for an existing file 
+3b. which for a file that does not exist
+
+4. exit (built-in 4)
+4a. use exit after using some commands
+4b. pass in arguments upon exit
+
+5. batch mode testing
+5a. batch mode with script to print hello
+5b. batch mode with no specific file
+5c. batch mode with a script for pipeline plus both redirections
+
+6. interactive mode testing
+6a. print using echo in interactive mode
+6b. ls, ls into non-existent directory
+6c. Use redirection to redirect STDOUT
+6d. Use redirection to redirect STDIN
+6e. Use redirection to redirect STDIN and STDOUT
+6f. Use redirection (STDIN, STDOUT) within a pipe
+6g. Wildcard testing using ls (ls *.c, using wildcard when a file name actually has an asterisk and no other files match pattern, hidden files, etc.)
+6h. Call a program using bare name (acroread)
+6i. Broken fork (one side of pipe has non-existent command)
+6j. ls | grep, ls | grep .txt
+6k. Signals (Ctrl+C, Ctrl+Z)
+
+__________________________________________________________
+Test descriptions/results 
+
+1. 
+1a. If you cd into a non-existent directory, you get the "cd: No such file or directory" error message as expected
+1b. cd into subdirectory, cd ./testFolder for our setup
+1c. cd into parent directory, if in ./P3/testFolder, you would go into the parent of testFolder (P3) then into the parent of (P3), so in my case my live-lec directory where all my files are
+
+2.
+2a. Since pwd is a simple command, only one testcses, pwd correctly prints working directory if in the P3 directory, pwd prints /common/home/np964/Desktop/live-lec/P3 
+
+3.
+3a. which acroread prints out /usr/local/bin/acroread as it does exist
+3b. which acroreadedede does not print anything and goes to a new line as it does not exist 
+
+4. exit after running ls simply prints "Exiting my shell then exits"
+4a. "exit hello world" (excluding quotes) prints hello world then Exiting my shell on a new line then exits
+
+5. 
+5a. ./mysh myscript.sh where myscript.sh holds "echo hello" (no quotes) prints out hello (as expected)
+5b. cat myscript.sh | ./mysh where myscript.sh holds "echo hello" (no quotes) also prints out hello (as expected)
+5c.  ./mysh pipeline.sh where pipeline.sh holds "./testing < ./testingInput.txt | ./pipeTest > fileOut1" (no quotes) results in the output file 15 11 12 13 14 15, which corresponds to the output given by real shell for the same input. 
+The testing executable prints out as many numbers as are inputed (testingInput.txt holds 5 1 2 3 4 5 for this scenario) and redirects that output into ./pipeTest which increments all numbers
+by 10 then prints them out into a file named fileOut, giving us the expected/actual output.
+
+6.
+6a. Our expected and actual output is hello
+6b. ls prints current directory, and when ls'ing into a non-existent directory, we print a cannot access 'directoryName': no such file or directory as expected along with the command code
+6c. ./testingOutput > FO creates a file FO with the output of ./testingOutput, so 0 1 2 3 4 5 6 7 8 9 as expected
+6d. ./testing < ./testingInput.txt redirected STDIN to ./testingInput.txt and prints out all numbers in the input file, so 5 1 2 3 4 5
+6e. ./testing > Output < ./testingInput.txt redirects STDOUT to Output and STDIN to testingInput.txt and as above, the output is 5 1 2 3 4 5 but this time is outputted to the file specified
+6f. Similar to 5c, ./testing < ./testingInput.txt | ./pipeTest > fileOut results in the output file 15 11 12 13 14 15, which corresponds to the output given by real shell for the same input, this time being tested in interactive mode.
+6g. ls *.c results in "inf.c  mysh.c  pipeTest.c  testing.c  testingOutput.c" (no quotes) and does not include .test.c because it begins with a . (hidden File). Similarly, ls test*file returns test*file because no other files match the pattern.  ls .*.c will show all hidden files that match the pattern. All of these match the output of real shell
+6h. acroread (barename file) outputs acroread was discontinued by Adobe in 2012. Please use "atril" instead. when called
+6j. ls | grep gives a usage hint in real shell and does in ours as well, ls | grep .txt displays all files ending in .txt, so input.txt and testingInput.txt
+
+__________________________________________________________
+Design Notes
+

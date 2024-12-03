@@ -1,0 +1,1 @@
+./testing < ./testingInput.txt | ./pipeTest > fileOut1
