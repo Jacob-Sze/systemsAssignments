@@ -524,7 +524,7 @@ int main(int argv, char **argc)
             int status = 0;
             int statusTwo = 0;
             waitpid(pidOne, &status, 0);
-            if (WIFSIGNALED(status) && WEXITSTATUS(status) != 0)
+            if (WIFSIGNALED(status) && WTERMSIG(status) != 0)
             {
                 printf("mysh: Terminated by signal: %d\n", WTERMSIG(status));
             }
@@ -533,7 +533,7 @@ int main(int argv, char **argc)
             {
                 printf("mysh: Command Failed: code %d\n", WEXITSTATUS(statusTwo));
             }
-            else if (WIFSIGNALED(status) && WEXITSTATUS(statusTwo) != 0)
+            else if (WIFSIGNALED(status) && WTERMSIG(statusTwo) != 0)
             {
                 printf("mysh: Terminated by signal: %d\n", WTERMSIG(statusTwo));
             }
@@ -794,7 +794,7 @@ int main(int argv, char **argc)
                 {
                     printf("mysh: Command Failed: code %d\n", WEXITSTATUS(statusTwo));
                 }
-                else if (WIFSIGNALED(statusTwo) && WEXITSTATUS(statusTwo) != 0)
+                else if (WIFSIGNALED(statusTwo) && WTERMSIG(statusTwo) != 0)
                 {
                     printf("mysh: Terminated by signal: %d\n", WTERMSIG(statusTwo));
                 }
