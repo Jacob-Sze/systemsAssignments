@@ -251,16 +251,13 @@ int main(int argv, char **argc)
         }
         if (strstr(command, "|"))
         {
+            int saved_stdin = dup(STDIN_FILENO);
             char *savePoint, savePointTwo;
             char *processes = __strtok_r(command, "|", &savePoint);
             char *input = NULL;
             char *output = NULL;
             int fd[2];
             int checking = pipe(fd);
-            if (checking < 0)
-            {
-                goto restart;
-            }
             if (strstr(processes, "<"))
             {
                 char *loop = strstr(processes, "<") + 1;
@@ -273,7 +270,7 @@ int main(int argv, char **argc)
                 {
                     i++;
                 }
-                input = malloc(i+1);
+                input = malloc(i + 1);
                 strncpy(input, loop, i);
                 input[i] = '\0';
                 for (int j = 0; j < i; j++)
@@ -362,6 +359,7 @@ int main(int argv, char **argc)
             if (pidOne == 0)
             {
                 setpgid(0, 0);
+                close(fd[0]);
                 int fpTwo;
                 if (input)
                 {
@@ -369,12 +367,16 @@ int main(int argv, char **argc)
                     if (fpTwo > 0)
                     {
                         dup2(fpTwo, STDIN_FILENO);
-
+                        close(fpTwo);
                     }
                 }
                 dup2(fd[1], STDOUT_FILENO);
-                dup2(fd[1], STDERR_FILENO);
-                execv(file, storage);
+                close(fd[1]);
+                if (execv(file, storage) == -1)
+                {
+                    perror("mysh");
+                    exit(1);
+                }
             }
             else if (pidOne > 0)
             {
@@ -387,11 +389,13 @@ int main(int argv, char **argc)
                         signal(i, handle_sig);
                     }
                 }
+                int status = 0;
+                waitpid(pidOne, &status, 0);
                 close(fd[1]);
-            }
-            else
-            {
-                perror("mysh: ");
+                if (WIFEXITED(status) && WEXITSTATUS(status) != 0)
+                {
+                    printf("mysh: Command Failed: code %d\n", WEXITSTATUS(status));
+                }
             }
             for (int i = 1; i < counter - 1; i++)
             {
@@ -400,15 +404,6 @@ int main(int argv, char **argc)
             free(storage);
             free(file);
             int status = 0;
-            int signals = waitpid(pidOne, &status, 0);
-            if (checker == 1)
-            {
-                status = 1;
-            }
-            if (status != 0)
-            {
-                printf("mysh: Command Failed: code %d\n", status);
-            }
             processes = __strtok_r(0, "|", &savePoint);
             if (strstr(processes, ">"))
             {
@@ -422,7 +417,7 @@ int main(int argv, char **argc)
                 {
                     i++;
                 }
-                output = malloc(i+1);
+                output = malloc(i + 1);
                 strncpy(output, loop, i);
                 output[i] = '\0';
                 for (int j = 0; j < i; j++)
@@ -511,17 +506,23 @@ int main(int argv, char **argc)
             if (pidTwo == 0)
             {
                 setpgid(0, 0);
+                close(fd[1]);
                 if (output)
                 {
                     fpTwo = open(output, O_WRONLY | O_TRUNC | O_CREAT, 0644);
                     if (fpTwo > 0)
                     {
                         dup2(fpTwo, STDOUT_FILENO);
-                        dup2(fpTwo, STDERR_FILENO);
+                        close(fpTwo);
                     }
                 }
                 dup2(fd[0], STDIN_FILENO);
-                execv(file, storage);
+                close(fd[0]);
+                if (execv(file, storage) == -1)
+                {
+                    perror("mysh");
+                    exit(1);
+                }
             }
             else if (pidTwo > 0)
             {
@@ -534,41 +535,27 @@ int main(int argv, char **argc)
                         signal(i, handle_sig);
                     }
                 }
+                int statusTwo = 0;
+                waitpid(pidTwo, &statusTwo, 0);
+                if (WIFEXITED(statusTwo) && WEXITSTATUS(statusTwo) != 0)
+                {
+                    printf("mysh: Command Failed: code %d\n", WEXITSTATUS(statusTwo));
+                }
             }
-            else
-            {
-                perror("mysh: ");
-            }
+            close(fd[0]);
+            close(fd[1]);
             for (int i = 1; i < counter; i++)
             {
                 free(storage[i]);
             }
             free(storage);
             free(file);
-            int statusTwo = 0;
-            int signalsTwo = 0;
-            while ((signalsTwo = waitpid(pidTwo, &statusTwo, 0)) > 0)
+            if (input)
             {
-                if (WIFSIGNALED(status))
-                {
-                    char *a;
-                    psignal(WTERMSIG(statusTwo), &a);
-                }
-            }
-            if (checker == 1)
-            {
-                statusTwo = 1;
-            }
-            if (statusTwo != 0)
-            {
-                printf("mysh: Command Failed: code %d", statusTwo);
-            }
-            close(fd[0]);
-            close(fd[1]);
-            if(input){
                 free(input);
             }
-            if(output){
+            if (output)
+            {
                 free(output);
             }
         }
@@ -644,19 +631,20 @@ int main(int argv, char **argc)
                         }
                         else
                         {
-                            free(file);
-                            goto restart;
+                            perror("mysh:");
                         }
                     }
                 }
-                free(file);
+                free(helper);
             }
             else if (strcmp(processes, "exit") == 0)
             {
+                printf("%s", savePoint);
                 if (batch == 0)
                 {
                     printf("\nExiting my shell\n");
                 }
+                free(command);
                 return 0;
             }
             else
@@ -676,7 +664,8 @@ int main(int argv, char **argc)
                         i++;
                     }
                     output = malloc(i + 1);
-                    strncpy(output, loop, i + 1);
+                    strncpy(output, loop, i);
+                    output[i] = '\0';
                     for (int j = 0; j < i; j++)
                     {
                         loop[j] = ' ';
@@ -694,8 +683,9 @@ int main(int argv, char **argc)
                     {
                         i++;
                     }
-                    input = malloc(i);
+                    input = malloc(i + 1);
                     strncpy(input, loop, i);
+                    input[i] = '\0';
                     for (int j = 0; j < i; j++)
                     {
                         loop[j] = ' ';
@@ -788,10 +778,7 @@ int main(int argv, char **argc)
                         if (fpOne > 0)
                         {
                             dup2(fpOne, STDOUT_FILENO);
-                        }
-                        else
-                        {
-                            goto restart;
+                            close(fpOne);
                         }
                     }
                     if (input)
@@ -800,16 +787,19 @@ int main(int argv, char **argc)
                         if (fpTwo > 0)
                         {
                             dup2(fpTwo, STDIN_FILENO);
-                        }
-                        else
-                        {
-                            goto restart;
+                            close(fpTwo);
                         }
                     }
-                    execv(file, storage);
+                    if(execv(file, storage) == -1){
+                        perror("mysh:");
+                        return 1;
+                    }
+                    
                 }
                 else if (pid > 0)
                 {
+                    signal(SIGTTOU, SIG_IGN);
+                    setpgid(pid, pid);
                     for (int i = 1; i < 32; i++)
                     {
                         if (i != 17)
@@ -817,24 +807,22 @@ int main(int argv, char **argc)
                             signal(i, handle_sig);
                         }
                     }
-                    int status = 0;
-                    int signals;
-                    while ((signals = waitpid(pid, &status, 0)) > 0)
+                    int statusTwo = 0;
+                    waitpid(pid, &statusTwo, 0);
+                    if (WIFEXITED(statusTwo) && WEXITSTATUS(statusTwo) != 0)
                     {
-                        if (WIFSIGNALED(status))
-                        {
-                            char *a;
-                            psignal(WTERMSIG(status), &a);
-                        }
-                    }
-                    if (status != 0)
-                    {
-                        printf("mysh: Command Failed: code %d", status);
+                        printf("mysh: Command Failed: code %d\n", WEXITSTATUS(statusTwo));
                     }
                 }
                 free(file);
-                free(input);
-                free(output);
+                if (input)
+                {
+                    free(input);
+                }
+                if (output)
+                {
+                    free(output);
+                }
                 for (int i = 1; i < counter; i++)
                 {
                     free(storage[i]);
