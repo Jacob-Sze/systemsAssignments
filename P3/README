@@ -78,6 +78,8 @@ by 10 then prints them out into a file named fileOut, giving us the expected/act
 6g. ls *.c results in "inf.c  mysh.c  pipeTest.c  testing.c  testingOutput.c" (no quotes) and does not include .test.c because it begins with a . (hidden File). Similarly, ls test*file returns test*file because no other files match the pattern.  ls .*.c will show all hidden files that match the pattern. All of these match the output of real shell
 6h. acroread (barename file) outputs acroread was discontinued by Adobe in 2012. Please use "atril" instead. when called
 6j. ls | grep gives a usage hint in real shell and does in ours as well, ls | grep .txt displays all files ending in .txt, so input.txt and testingInput.txt
+6k. Signals (ping google.com | ls , testingTwo.c) - Broken by pipe as expected
+6l. (ls > a.txt > b.txt) - In this scenario, we correctly output to both a.txt and b.txt 
 
 Our outputs behave like real shell (with some minor formatting differences) and give correct output. Most testing is in interactive mode but can be applied to batchmode through the scripts. The pipelien for 5c/6f is the same but shows both batch mode and interactive work the same functionality wise
 __________________________________________________________
